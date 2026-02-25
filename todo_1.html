@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tasks</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0e8;
+    --paper: #fdfaf4;
+    --ink: #1a1510;
+    --accent: #c8432a;
+    --line: #d9d0c0;
+    --done: #8a8070;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 60px 20px;
+    background-image: 
+      radial-gradient(ellipse at 20% 20%, rgba(200, 67, 42, 0.06) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(26, 21, 16, 0.04) 0%, transparent 60%);
+  }
+
+  .notebook {
+    width: 100%;
+    max-width: 560px;
+  }
+
+  .header {
+    margin-bottom: 48px;
+    position: relative;
+  }
+
+  .header-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(42px, 8vw, 64px);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+    letter-spacing: -1px;
+  }
+
+  .date {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 300;
+    color: var(--done);
+    margin-top: 12px;
+    letter-spacing: 0.1em;
+  }
+
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: var(--ink);
+    margin-bottom: 8px;
+  }
+  .divider-thin {
+    width: 100%;
+    height: 1px;
+    background: var(--line);
+    margin-bottom: 40px;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 40px;
+    align-items: stretch;
+  }
+
+  .task-input {
+    flex: 1;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 0;
+    padding: 14px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+    box-shadow: 2px 2px 0 var(--line);
+  }
+
+  .task-input::placeholder { color: var(--done); }
+  .task-input:focus { border-color: var(--ink); box-shadow: 2px 2px 0 var(--ink); }
+
+  .add-btn {
+    background: var(--ink);
+    color: var(--bg);
+    border: none;
+    padding: 14px 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    white-space: nowrap;
+  }
+
+  .add-btn:hover { background: var(--accent); }
+  .add-btn:active { transform: translate(1px, 1px); }
+
+  .stats {
+    font-size: 11px;
+    font-weight: 300;
+    color: var(--done);
+    margin-bottom: 20px;
+    letter-spacing: 0.1em;
+  }
+
+  .stats span { color: var(--accent); }
+
+  .list { list-style: none; }
+
+  .item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+    animation: slideIn 0.25s ease-out;
+    position: relative;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .check-wrap {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    margin-top: 1px;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .check-wrap input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    margin: 0;
+  }
+
+  .check-box {
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid var(--ink);
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s;
+    pointer-events: none;
+  }
+
+  .check-wrap input:checked ~ .check-box {
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+
+  .check-mark {
+    display: none;
+    width: 10px;
+    height: 6px;
+    border-left: 2px solid var(--bg);
+    border-bottom: 2px solid var(--bg);
+    transform: rotate(-45deg) translateY(-1px);
+  }
+
+  .check-wrap input:checked ~ .check-box .check-mark { display: block; }
+
+  .task-text {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--ink);
+    line-height: 1.5;
+    padding-top: 1px;
+    transition: color 0.2s;
+    word-break: break-word;
+  }
+
+  .item.done .task-text {
+    color: var(--done);
+    text-decoration: line-through;
+    text-decoration-color: var(--done);
+  }
+
+  .delete-btn {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: var(--line);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+    transition: color 0.15s;
+    margin-top: 1px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .delete-btn:hover { color: var(--accent); }
+
+  .empty {
+    text-align: center;
+    padding: 48px 0;
+    color: var(--done);
+    font-size: 12px;
+    font-weight: 300;
+    letter-spacing: 0.1em;
+  }
+
+  .empty-glyph {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    display: block;
+    margin-bottom: 12px;
+    opacity: 0.3;
+  }
+
+  @keyframes fadeOut {
+    to { opacity: 0; transform: translateX(20px); max-height: 0; padding: 0; overflow: hidden; }
+  }
+  .item.removing {
+    animation: fadeOut 0.25s ease-in forwards;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 32px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .toolbar-label {
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--done);
+    margin-right: 4px;
+  }
+
+  .tool-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 8px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+    box-shadow: 1px 1px 0 var(--line);
+  }
+
+  .tool-btn:hover { border-color: var(--ink); box-shadow: 1px 1px 0 var(--ink); }
+  .tool-btn.import-btn:hover { border-color: var(--accent); color: var(--accent); box-shadow: 1px 1px 0 var(--accent); }
+
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--ink);
+    color: var(--bg);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    padding: 12px 24px;
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+</style>
+</head>
+<body>
+<div class="notebook">
+  <div class="header">
+    <div class="header-label">— My List —</div>
+    <h1>Tasks</h1>
+    <div class="date" id="date-display"></div>
+  </div>
+  <div class="divider"></div>
+  <div class="divider-thin"></div>
+
+  <div class="input-row">
+    <input class="task-input" id="task-input" type="text" placeholder="Add a new task…" maxlength="200" />
+    <button class="add-btn" id="add-btn">+ Add</button>
+  </div>
+
+  <div class="toolbar">
+    <span class="toolbar-label">Data:</span>
+    <button class="tool-btn" id="export-btn">↓ Export</button>
+    <button class="tool-btn import-btn" id="import-btn">↑ Import</button>
+    <input type="file" id="file-input" accept=".json" style="display:none" />
+  </div>
+
+  <div class="stats" id="stats" style="display:none"></div>
+  <ul class="list" id="list"></ul>
+  <div class="empty" id="empty">
+    <span class="empty-glyph">✦</span>
+    Nothing here yet.<br>Add your first task above.
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+  const input = document.getElementById('task-input');
+  const addBtn = document.getElementById('add-btn');
+  const list = document.getElementById('list');
+  const empty = document.getElementById('empty');
+  const stats = document.getElementById('stats');
+
+  // Set date
+  document.getElementById('date-display').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+  let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+
+  function save() {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }
+
+  function updateStats() {
+    const total = tasks.length;
+    const done = tasks.filter(t => t.done).length;
+    if (total === 0) {
+      stats.style.display = 'none';
+      empty.style.display = 'block';
+    } else {
+      empty.style.display = 'none';
+      stats.style.display = 'block';
+      stats.innerHTML = `<span>${done}</span> of <span>${total}</span> completed`;
+    }
+  }
+
+  function render() {
+    list.innerHTML = '';
+    tasks.forEach((task, i) => {
+      const li = document.createElement('li');
+      li.className = 'item' + (task.done ? ' done' : '');
+
+      li.innerHTML = `
+        <label class="check-wrap">
+          <input type="checkbox" ${task.done ? 'checked' : ''} />
+          <div class="check-box"><div class="check-mark"></div></div>
+        </label>
+        <span class="task-text">${escapeHtml(task.text)}</span>
+        <button class="delete-btn" title="Delete">×</button>
+      `;
+
+      li.querySelector('input').addEventListener('change', () => {
+        tasks[i].done = !tasks[i].done;
+        save();
+        li.classList.toggle('done', tasks[i].done);
+        updateStats();
+      });
+
+      li.querySelector('.delete-btn').addEventListener('click', () => {
+        li.classList.add('removing');
+        li.addEventListener('animationend', () => {
+          tasks.splice(i, 1);
+          save();
+          render();
+          updateStats();
+        }, { once: true });
+      });
+
+      list.appendChild(li);
+    });
+    updateStats();
+  }
+
+  function addTask() {
+    const text = input.value.trim();
+    if (!text) { input.focus(); return; }
+    tasks.unshift({ text, done: false });
+    save();
+    render();
+    input.value = '';
+    input.focus();
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  addBtn.addEventListener('click', addTask);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+
+  // Export
+  document.getElementById('export-btn').addEventListener('click', () => {
+    if (tasks.length === 0) { showToast('Nothing to export yet.'); return; }
+    const blob = new Blob([JSON.stringify(tasks, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'tasks.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Tasks exported.');
+  });
+
+  // Import
+  const fileInput = document.getElementById('file-input');
+  document.getElementById('import-btn').addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const imported = JSON.parse(e.target.result);
+        if (!Array.isArray(imported)) throw new Error();
+        const valid = imported.filter(t => typeof t.text === 'string');
+        const merged = [...valid, ...tasks.filter(t => !valid.find(v => v.text === t.text))];
+        tasks = merged;
+        save();
+        render();
+        showToast(`Imported ${valid.length} task${valid.length !== 1 ? 's' : ''}.`);
+      } catch {
+        showToast('Invalid file — please use an exported tasks.json.');
+      }
+      fileInput.value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  // Toast
+  let toastTimer;
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+
+  render();
+</script>
+</body>
+</html>
